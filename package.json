@@ -1,10 +1,10 @@
 {
-  "name": "mern_boilerplate",
-  "description": "Starter for MERN apps",
+  "name": "the_peak_of_interest",
+  "description": "A tournament-style wikipedia article ranking game",
   "version": "1.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rkm660/MERN.git"
+    "url": "https://github.com/rkm660/ThePeakOfInterest"
   },
   "main": "server.js",
   "scripts": {
