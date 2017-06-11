@@ -2,8 +2,10 @@ import React from 'react';
 import {Link} from 'react-router';
 import NavbarStore from '../stores/NavbarStore';
 import NavbarActions from '../actions/NavbarActions';
+import LoginButton from './LoginButton';
 
 class Navbar extends React.Component {
+
   constructor(props) {
     super(props);
     this.state = NavbarStore.getState();
@@ -22,7 +24,6 @@ class Navbar extends React.Component {
     this.setState(state);
   }
 
-
   render() {
     return (
       <nav className='navbar navbar-default navbar-static-top'>
@@ -40,10 +41,15 @@ class Navbar extends React.Component {
         <div id='navbar' className='navbar-collapse collapse'>
           <ul className='nav navbar-nav'>
           </ul>
+          <ul className="nav navbar-nav navbar-right login-profile">
+              <LoginButton/>
+          </ul>
         </div>
       </nav>
     );
   }
 }
+
+
 
 export default Navbar;
