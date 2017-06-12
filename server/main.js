@@ -78,10 +78,6 @@ app.get('/logout', function(req, res) {
 });
 
 
-app.post('/api/random_article/', function(req, res){
-    res.send("test");
-})
-
 //General routing
 app.use(function(req, res) {
     Router.match({ routes: routes.default, location: req.url }, function(err, redirectLocation, renderProps) {
