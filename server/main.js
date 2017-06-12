@@ -14,17 +14,8 @@ var bodyParser = require('body-parser');
 var session = require('express-session')
 var cookieParser = require('cookie-parser')
 
-
-//DB
-var dbConfig = require('./db.js');
-var mongoose = require('mongoose');
-var User = require('./models/User.js')
-
-var passport = require('passport'),
-    FacebookStrategy = require('passport-facebook').Strategy;
-
+//Create app
 var app = express();
-
 app.set('port', process.env.PORT || 3000);
 app.use(logger('dev'));
 app.use(bodyParser.json());
@@ -32,9 +23,13 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname.substring(0, __dirname.length-7), '/public')));
 app.use(cookieParser())
 
-mongoose.connect(dbConfig.url);
+
+//DB
+var utils = require('./utils');
 
 //Authentication
+var passport = require('passport'),
+    FacebookStrategy = require('passport-facebook').Strategy;
 app.use(session({ resave: true, 'saveUninitialized': true, secret: 'secret' }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -46,25 +41,7 @@ passport.use(new FacebookStrategy({
     },
     function(accessToken, refreshToken, profile, done) {
         process.nextTick(function() {
-            User.findOne({ 'userID': profile.id }, function(err, user) {
-                if (err)
-                    return done(err);
-                if (user)
-                    return done(null, user);
-                else {
-                    var newUser = new User();
-                    newUser.userID = profile.id;
-                    newUser.token = accessToken;
-                    newUser.first_name = profile.name.givenName;
-                    newUser.last_name = profile.name.familyName;
-                    newUser.email = profile.emails[0].value;
-                    newUser.save(function(err) {
-                        if (err)
-                            throw err;
-                        return done(null, newUser);
-                    })
-                }
-            });
+            return utils.authenticateUser(profile, accessToken, done);
         });
     }
 ));
@@ -84,7 +61,7 @@ app.get('/auth/facebook/callback', function(req, res, next) {
     })(req, res, next);
 });
 
-app.get('/current_user', function(req, res){
+app.get('/api/current_user', function(req, res){
     res.send(req.user);
 });
 
@@ -92,15 +69,18 @@ passport.serializeUser(function(user, done) {
     done(null, user.id);
 });
 passport.deserializeUser(function(id, done) {
-    User.findById(id, function(err, user) {
-        done(err, user);
-    });
+    return utils.getUser(id, done);
 });
 
 app.get('/logout', function(req, res) {
     req.logout();
     res.redirect('/');
 });
+
+
+app.post('/api/random_article/', function(req, res){
+    res.send("test");
+})
 
 //General routing
 app.use(function(req, res) {

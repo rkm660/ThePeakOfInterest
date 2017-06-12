@@ -11,7 +11,7 @@ class AuthActions {
     getCurrentUser() {
         return (dispatch) => {
             dispatch()
-            $.ajax({ url: '/current_user' })
+            $.ajax({ url: '/api/current_user' })
                 .done((data) => {
                     this.actions.getCurrentUserSuccess(data)
                 })

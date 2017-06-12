@@ -29,7 +29,7 @@ var AuthActions = function () {
 
             return function (dispatch) {
                 dispatch();
-                $.ajax({ url: '/current_user' }).done(function (data) {
+                $.ajax({ url: '/api/current_user' }).done(function (data) {
                     _this.actions.getCurrentUserSuccess(data);
                 }).fail(function (jqXhr) {
                     _this.actions.getCurrentUserFail(jqXhr);
