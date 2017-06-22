@@ -26,8 +26,18 @@ module.exports = {
             });
         });
     },
+    getArticlesFromMatchup: function(userID, matchup1_num, matchup2_num, callback) {
+        Matchup.findOne({ 'userID': userID, 'number': matchup1_num }, function(err, matchup1) {
+            if (err) {
+                throw err;
+            }
+            Matchup.findOne({ 'userID': userID, 'number': matchup2_num }, function(err, matchup2) {
+                return callback({ 'article_1': matchup1["winner"], 'article_2': matchup2["winner"] });
+            });
+        })
+    },
     addArticle: function(userID, article, callback) {
-        var newUserArticle = new UserArticle()
+        let newUserArticle = new UserArticle()
         newUserArticle.userID = userID;
         newUserArticle.article = article;
         newUserArticle.save(function(err) {
@@ -36,49 +46,58 @@ module.exports = {
             return callback(null, newUserArticle);
         });
     },
-    createNewRound: function(num, userID, callback) {
-        var round = Math.floor(Math.log(num) / Math.log(2)) + 1;
-        var highestEffectiveNumInRound = Math.pow(2, round) - 2;
-        var level = (Number.isInteger(Math.log(num + 1) / Math.log(2))) ? round : round - 1 - Math.floor(Math.log(highestEffectiveNumInRound - num + 1) / Math.log(2));
-        var newMatchup = new Matchup()
-        newMatchup.number = num;
-        newMatchup.userID = userID;
-        newMatchup.level = level;
-        newMatchup.round = round;
-        newMatchup.article_1 = x;
-        newMatchup.article_2 = x;
-        newMatchup.winner = "N/A";
-        newMatchup.save(function(err) {
-            if (err)
-                throw err;
-            return callback(null, newMatchup);
-        });
-    },
 
-    createInitialRound: function(userID, callback) {
-        module.exports.getRandomArticle(userID, function(article1) {
-            module.exports.getRandomArticle(userID, function(article2) {
-                var round = 1;
-                var level = 1;
-                var newMatchup = new Matchup()
-                newMatchup.number = 1;
-                newMatchup.userID = userID;
-                newMatchup.level = level;
-                newMatchup.round = round;
-                newMatchup.article_1 = article1;
-                newMatchup.article_2 = article2;
-                newMatchup.winner = "N/A";
-                newMatchup.save(function(err) {
-                    if (err)
-                        throw err;
-                    module.exports.addArticle(userID, article1, function(res) {
-                        module.exports.addArticle(userID, article2, function(res) {
-                            return callback(null, newMatchup);
+    createNewMatchup: function(userID, num, callback) {
+        let round = Math.floor(Math.log(num) / Math.log(2)) + 1;
+        let highestEffectiveNumInRound = Math.pow(2, round) - 2;
+        let level = (Number.isInteger(Math.log(num + 1) / Math.log(2))) ? round : round - 1 - Math.floor(Math.log(highestEffectiveNumInRound - num + 1) / Math.log(2));
+        if (level == 1) {
+            module.exports.getRandomArticle(userID, function(article_1) {
+                module.exports.getRandomArticle(userID, function(article_2) {
+                    let newMatchup = new Matchup()
+                    newMatchup.number = num;
+                    newMatchup.userID = userID;
+                    newMatchup.level = level;
+                    newMatchup.round = round;
+                    newMatchup.article_1 = article_1;
+                    newMatchup.article_2 = article_2;
+                    newMatchup.winner = "N/A";
+                    newMatchup.save(function(err) {
+                        if (err)
+                            throw err;
+                        module.exports.addArticle(userID, article_1, function(res) {
+                            module.exports.addArticle(userID, article_2, function(res) {
+                                return callback(null, newMatchup);
+                            });
                         });
                     });
                 });
             });
-        });
+        } else {
+            
+            let matchup1_num = ;
+            let matchup2_num = matchup1_num + 1
+            module.exports.getArticlesFromMatchups(userID, matchup1_num, matchup2_num, function(articles) {
+                var newMatchup = new Matchup()
+                newMatchup.number = num;
+                newMatchup.userID = userID;
+                newMatchup.level = level;
+                newMatchup.round = round;
+                newMatchup.article_1 = articles["article_1"];
+                newMatchup.article_2 = articles["article_2"];
+                newMatchup.winner = "N/A";
+                newMatchup.save(function(err) {
+                    if (err)
+                        throw err;
+                    module.exports.addArticle(userID, articles["article_1"], function(res) {
+                        module.exports.addArticle(userID, articles["article_2"], function(res) {
+                            return callback(null, newMatchup);
+                        });
+                    });
+                });
+            })
+        }
+
     },
     authenticateUser: function(profile, token, callback) {
 
@@ -88,9 +107,8 @@ module.exports = {
             if (user) {
                 return callback(null, user);
             } else {
-
                 //Create new user
-                var newUser = new User();
+                let newUser = new User();
                 newUser.userID = profile.id;
                 newUser.token = token;
                 newUser.first_name = profile.name.givenName;
@@ -100,7 +118,7 @@ module.exports = {
                 newUser.save(function(err) {
                     if (err)
                         throw err;
-                    module.exports.createInitialRound(profile.id, function(round1) {
+                    module.exports.createNewMatchup(profile.id, 1, function(matchup) {
                         return callback(null, newUser);
                     });
                 });
