@@ -37,7 +37,7 @@ module.exports = {
         })
     },
     addArticle: function(userID, article, callback) {
-        let newUserArticle = new UserArticle()
+        let newUserArticle = new UserArticle();
         newUserArticle.userID = userID;
         newUserArticle.article = article;
         newUserArticle.save(function(err) {
@@ -54,7 +54,7 @@ module.exports = {
         if (level == 1) {
             module.exports.getRandomArticle(userID, function(article_1) {
                 module.exports.getRandomArticle(userID, function(article_2) {
-                    let newMatchup = new Matchup()
+                    let newMatchup = new Matchup();
                     newMatchup.number = num;
                     newMatchup.userID = userID;
                     newMatchup.level = level;
@@ -74,11 +74,19 @@ module.exports = {
                 });
             });
         } else {
-            
-            let matchup1_num = ;
+            let previous_level = level - 1;
+            let matchup1_num;
+            if (num > highestEffectiveNumInRound) {
+                matchup1_num = num - 2;
+            } else {
+                let first_num_in_current_level = highestEffectiveNumInRound - (Math.pow(2, (round - level)) - 1) + 1;
+                let first_num_in_previous_level = highestEffectiveNumInRound - (Math.pow(2, (round - previous_level)) - 1) + 1;
+                matchup1_num = first_num_in_previous_level + ((num - first_num_in_current_level + 1) * 2) - 1;
+            }
+
             let matchup2_num = matchup1_num + 1
             module.exports.getArticlesFromMatchups(userID, matchup1_num, matchup2_num, function(articles) {
-                var newMatchup = new Matchup()
+                var newMatchup = new Matchup();
                 newMatchup.number = num;
                 newMatchup.userID = userID;
                 newMatchup.level = level;
@@ -97,7 +105,6 @@ module.exports = {
                 });
             })
         }
-
     },
     authenticateUser: function(profile, token, callback) {
 
